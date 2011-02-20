@@ -1,0 +1,1 @@
+svn checkout --depth empty "$1" ./repo

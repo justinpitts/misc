@@ -1,0 +1,18 @@
+#!/bin/sh
+cd /Users/jpitts/source/svnalert
+set -e
+(svn status -u ./repo >/dev/null 2>&1 ) || false
+m=`svn status -u --xml ./repo | grep -A1 against | grep revision | cut -f2 -d'"'`
+n=`svn st -v --xml ./repo | grep -A1 "^<commit" | grep revision | cut -f2 -d'"'`
+if [ $n -ne $m ]
+then
+    let "n+=1"
+
+    svn log -v --xml ./repo -r$n:$m  | xsltproc ./format_notify.xslt - | while read f
+    do
+	( echo $f | cut -f1 -f3 -d' ' ;echo $f | cut -f4- -d' ') | growlnotify -t svnnotify 
+	sleep 3
+    done
+ ( cd repo && svn up >/dev/null 2>&1 )
+fi
+
